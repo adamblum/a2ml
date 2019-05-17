@@ -12,26 +12,21 @@ class ImportCmd(object):
         self.ctx = ctx
 
     def import_data(self):
-        config = yaml.safe_load(open("config.yaml"))
-        project = config['project']
-        name = config['name']
-        region = config['region']
-        providers=config['providers'].split(',')
+        name = self.ctx.config['name']
+        providers=self.ctx.config['providers'].split(',')
         for provider in providers: 
-            if (provider == "GC"):
+            if (provider == "google"):
+                project = self.ctx.config['google/project']
                 print("Project: {}".format(project))          
-                model = gc_a2ml.GCModel(name,project,region)
-                model.import_data(config['source'])
-                config['dataset_id']=model.dataset_id
-                config['operation_id']=model.operation_id
-            elif (provider == 'AZ'):
-                azure_region = config['azure_region']
-                compute_name = config['azure_compute_name']
-                model = az_a2ml.AZModel(name,project,azure_region,compute_name)
-                model.import_data(config['source'])
+                model = gc_a2ml.GCModel(name,project,self.ctx.google_config['google/region'])
+                model.import_data(self.ctx.config.source)
+                self.ctx.config['google'].dataset_id=model.dataset_id
+                self.ctx.write_config('google') 
+            elif (provider == 'azure'):
+                region = self.ctx.config['azure'].get('region','eastus2')
+                model = az_a2ml.AZModel(name,region)
+                model.import_data(self.ctx.config.source)
 
-        with open('config.yaml', 'w') as yaml_file:
-            yaml.dump(config, yaml_file, default_flow_style=False)
 
 @click.command('import', short_help='Import data for training.')
 @pass_context

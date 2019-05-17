@@ -17,9 +17,8 @@ from a2ml.api import a2ml
 
 class AZModel(a2ml.Model):  
 
-    def __init__(self,name,project_id,compute_region,compute_name):
+    def __init__(self,name,compute_region):
         self.name = name
-        self.project_id = project_id
         if compute_region is None:
             compute_region = 'eastus2'
         self.compute_region = compute_region
@@ -30,8 +29,8 @@ class AZModel(a2ml.Model):
             self.ws = Workspace.from_config(path='.azure/config.json')
         except:  # or create a new one
 
-            resource_group = project_id + '_resources'
-            self.ws = Workspace.create(name=project_id,
+            resource_group = name + '_resources'
+            self.ws = Workspace.create(name=name,
                         subscription_id=subscription_id,	
                         resource_group=resource_group,
                         create_resource_group=True,
@@ -41,21 +40,22 @@ class AZModel(a2ml.Model):
 
         self.ws.write_config() 
         # choose a name for your cluster
-        self.compute_name = compute_name
+        self.compute_name = name + "_compute"
         self.min_nodes =  0
         self.max_nodes = 4
         # This example uses CPU VM. For using GPU VM, set SKU to STANDARD_NC6
         self.vm_size = os.environ.get("AML_COMPUTE_CLUSTER_SKU", "STANDARD_D2_V2")
 
         if self.compute_name in self.ws.compute_targets:
-            compute_target = self.ws.compute_targets[compute_name]
+            compute_target = self.ws.compute_targets[self.compute_name]
             if compute_target and type(compute_target) is AmlCompute:
-                print('found compute target. just use it. ' + compute_name)
+                print('found compute target. just use it. ' + self.compute_name)
         else: 
             print('Creating new AML compute context.')
             provisioning_config = AmlCompute.provisioning_configuration(vm_size=self.vm_size, min_nodes=self.min_nodes, max_nodes=self.max_nodes)
             compute_target = ComputeTarget.create(self.ws, self.compute_name, provisioning_config)
             compute_target.wait_for_completion(show_output = True)
+        # TODO: enable this: self.ctx.write_config() 
 
     def import_data(self,source):
         self.source = source 
@@ -75,7 +75,7 @@ class AZModel(a2ml.Model):
         template = open("a2ml/api/get_data.template","r")
         text = template.read()
         template.close 
-        print("Replacing $SOURCE with: {}".format(self.source))
+        print("Replacing SOURCE with: {}".format(self.source))
         text=text.replace("SOURCE",self.source)
         text=text.replace("TARGET",self.target)
         print("Generated data script contents: {}".format(text))
