@@ -196,7 +196,7 @@ For ease of use you can set up a default project ID to use with your project wit
 export PROJECT_ID="automl-test-237311"
 ```
 
-Detailed instructions for setting up Google Cloud AutoML are [here](https://cloud.google.com/vision/automl/docs/before-you-begin)])    
+Detailed instructions for setting up Google Cloud AutoML are [here](https://cloud.google.com/vision/automl/docs/before-you-begin)   
 
 ### Azure AutoML
 The Azure AutoML service allows credentials to be downloaded as a JSON file (such as a config.json file).  This should then be placed in a .azureml subdirectory of your project directory.  Be sure to include this file in your .gitignore:
